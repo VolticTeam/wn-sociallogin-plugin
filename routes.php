@@ -1,14 +1,13 @@
 <?php
 
-// http://home.flynsarmy.com/flynsarmy/sociallogin/Google?s=/&f=/login
 Route::get(
-    'flynsarmy/sociallogin/{provider}',
+    'oauth2/{provider}',
     [
         "as" => "flynsarmy_sociallogin_provider",
         'middleware' => ['web'],
         function ($provider_name, $action = "") {
-            $success_redirect = Input::get('s', '/');
-            $error_redirect = Input::get('f', '/login');
+            $success_redirect = Input::get('s', '/app');
+            $error_redirect = Input::get('f', '/app/login');
             Session::flash('flynsarmy_sociallogin_successredirect', $success_redirect);
             Session::flash('flynsarmy_sociallogin_errorredirect', $error_redirect);
 
@@ -21,19 +20,22 @@ Route::get(
 
             $provider = $provider_class::instance();
 
+            //Saving the session...
+            Session::save();
+
             return $provider->redirectToProvider();
         }
     ]
 )->where(['provider' => '[A-Z][a-zA-Z ]+']);
 
 Route::any(
-    'flynsarmy/sociallogin/{provider}/callback',
+    'oauth2/{provider}/callback',
     [
         'as' => 'flynsarmy_sociallogin_provider_callback',
         'middleware' => ['web'],
         function ($provider_name) {
-            $success_redirect = Session::get('flynsarmy_sociallogin_successredirect', '/');
-            $error_redirect = Session::get('flynsarmy_sociallogin_errorredirect', '/login');
+            $success_redirect = Session::get('flynsarmy_sociallogin_successredirect', '/app');
+            $error_redirect = Session::get('flynsarmy_sociallogin_errorredirect', '/app/login');
 
             $provider_class = Flynsarmy\SocialLogin\Classes\ProviderManager::instance()
                 ->resolveProvider($provider_name);
